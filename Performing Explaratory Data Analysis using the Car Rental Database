@@ -1,0 +1,150 @@
+    
+----TABLE JOINS----
+----JOINING ALL 3 TABLES: CUSTOMERS, RENTALS AND CARS----
+-----This query joins all 3 tables and displays all the information which is on the Cars Database-----
+
+USE Car_Rental;
+SELECT * FROM Rentals
+ INNER JOIN
+Cars ON Cars.Car_id = Rentals.Car_id
+JOIN
+Customers ON Customers.Customer_id = Rentals.Customer_id;
+
+-----RIGHT JOIN----;
+----This query uses a right join which joins together the cars and rental table. Because rentals is on the right, it will bring back all records from the rentals table.;
+
+SELECT Cars.Car_id, Cars.Make, Cars.Model, Cars.Colour, Rentals.Rental_Date, Rentals.Return_Date FROM Cars
+RIGHT JOIN
+Rentals  ON Cars.Car_id = Rentals.Car_id;
+	
+-----LEFT JOIN----
+-----This query uses a left join which joins together the customers and rentals table. Since customers is on the left, it will bring back all records from the customers table-----						
+
+SELECT Customers.First_Name, Customers.Last_Name, Rentals.Rental_Date, Rentals.Return_Date
+FROM Customers
+LEFT JOIN
+Rentals ON Customers.Customer_id = Rentals.Customer_id;
+
+----AGGREGATE FUNCTIONS-----
+----MINIMUM, MAXIMUM, AVERAGE AND STANDARD DEVIATION  FUNCTIONS----
+-----This query will bring out aggregate functions such as the minimum, maximum, average and also standard deviation all from the cars table-----
+
+SELECT MIN(Rental_cost) AS Minimum_Rental_Price, 
+MAX(Rental_cost) AS Maximum_Rental_cost, 
+AVG(Rental_cost) AS Average_Rental_Costs,
+STDDEV(Rental_cost) AS Standard_Deviation_Rental_Cost
+FROM Cars;
+
+----SUM FUNCTION----
+-----This function will show the total cost spent by each customer-----
+
+SELECT Customers.First_Name, Customers.Last_Name, Customers.Customer_id, SUM(Cars.Rental_Cost) AS Total_Rental_Cost
+FROM Rentals
+JOIN Cars ON Cars.Car_id = Rentals.Car_id
+JOIN Customers ON Customers.Customer_id = Rentals.Customer_id
+GROUP BY Customers.First_Name, Customers.Last_Name, Customers.Customer_id
+ORDER BY Total_Rental_Cost DESC;
+
+COUNT FUNCTION
+----This function counts the number of times it has been rented out so we can see the most popular and least popular car.
+
+
+SELECT  Make, Model, COUNT(Rental_id) as Total_Rentals
+FROM Rentals
+JOIN Cars ON Cars.Car_id = Rentals.Car_id
+GROUP BY Make, Model
+ORDER BY Total_Rentals DESC;
+
+----2 INBUILT FUNCTIONS----
+----DATEFIFF FUNCTION----
+-----This query shows the number of days the car was rented out. I used datediff to achieve this-----
+
+SELECT Cars.Make, Cars.Model, Rentals.Car_id, DATEDIFF (Rentals.Return_Date, Rentals.Rental_Date) AS Rental_Days
+FROM Rentals 
+JOIN Cars  ON Cars.Car_id = Rentals.Car_id
+ORDER BY Rental_Days DESC;
+
+-----CONCAT FUNCTION-----
+-----This query will join the car make and the model and we will name the new string as  Car Description-----
+
+SELECT CONCAT(Make ,"   ", Model) AS Car_Description, Rental_Cost
+FROM CARS
+ORDER BY Rental_Cost;
+
+----OTHER SQL QUERIES----
+-----This is a subquery which shows the car which had the customer who had highest rental days and also the car he rented-----;
+
+SELECT CONCAT(First_Name,"  ", Last_Name) AS Customer_Name, Make, Model, DATEDIFF(Rentals.Return_Date, Rentals.Rental_Date) AS Rental_Duration
+FROM Rentals 
+JOIN Cars ON Cars.Car_id = Rentals.Car_id
+JOIN Customers ON Customers.Customer_id = Rentals.Customer_id
+WHERE DATEDIFF(Rentals.Return_Date, Rentals.Rental_Date) = (
+    SELECT MAX(DATEDIFF(Return_Date, Rental_Date))
+    FROM Rentals
+);
+
+----This query shows the day of the week when most customers hire cars-----
+
+SELECT DAYNAME(Rental_Date) AS Day_of_week , COUNT(*) AS Total_Rentals
+FROM Rentals
+GROUP BY DAYNAME(Rental_Date)
+ORDER BY Total_Rentals DESC;
+
+----CASE STATEMENT----
+-----This query categorizes the rental cars based on categories A price is less than or equal to A, B cost is above 25 and below or equal to 50 then the ones above 50 are category C -----
+
+SELECT Car_id, Make, Model, 
+CASE
+    WHEN Rental_cost <= 25 THEN "A"
+    WHEN Rental_cost > 25 AND rental_cost <= 50 THEN "B"
+    WHEN Rental_cost > 50 THEN "C"
+END AS Rental_Category
+fROM Cars
+ORDER BY Rental_Category;
+
+-----This query uses the like wildcard and brings up names of cars which start with B-----
+
+SELECT Make, Model 
+FROM Cars
+WHERE Make LIKE "B%";
+
+-----This query uses IN statement to select car made in 2022 and 2023-----
+
+SELECT Make, Model
+FROM Cars
+WHERE Year_Made IN (2022, 2023);
+
+-----QUERY WITH ORDER BY-----
+-----This query displays all the cars with rental cost less than £50-----
+
+SELECT Make, Model, Rental_Cost
+FROM Cars
+WHERE Rental_Cost < 50
+ORDER BY Rental_Cost ASC;
+
+-----QUERY TO DELETE A ROW-----
+-----This query deletes rental car id 14-----
+
+DELETE FROM Rentals
+WHERE rental_id = 14;
+
+DELIMITER //
+CREATE PROCEDURE insert_Customer (
+IN Customer_id INT,
+IN First_Name VARCHAR(50),
+IN Last_Name VARCHAR(50),
+IN Phone VARCHAR(20)
+)
+BEGIN
+    INSERT INTO Customers (Customer_id, First_Name, Last_Name, Phone)
+    VALUES (Customer_id, First_Name, Last_Name, Phone);
+END //
+
+DELIMITER ;
+
+
+CALL Insert_Customer (16, "Anna", "Rosary", 201419);
+
+
+
+
